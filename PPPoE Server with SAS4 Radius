@@ -37,9 +37,9 @@ ip dns cache size 1000
 username sas-admin privilege 15 secret sasSAS123!@#
 
 ! Add Local Users Here
-username user1 password password1
-username user2 password password2
-username user3 password password3
+username user1 secret password1
+username user2 secret password2
+username user3 secret password3
 
 ip local pool PPPoE_POOL 10.20.0.2 10.20.15.254
 
