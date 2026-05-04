@@ -103,4 +103,8 @@ ip nat inside source list 1 interface GigabitEthernet1 overload
 ! =========================
 ip dns server
 ip name-server 8.8.8.8 1.1.1.1
+ip domain lookup
+ip dns cache enable
+ip dns cache size 1000
+
 
