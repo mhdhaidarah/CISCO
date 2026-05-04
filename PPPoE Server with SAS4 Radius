@@ -1,0 +1,69 @@
+! CISCO SAS4 PPPoE Server
+conf t
+! Change Server Name
+hostname PPPoE_SRV1
+ip domain name myisp.com
+no logging console
+ip routing
+aaa new-model
+aaa authentication ppp default group radius local
+aaa authorization network default group radius local
+aaa accounting network default start-stop group radius
+crypto key generate rsa modulus 2048
+ip ssh version 2
+ip ssh time-out 60
+ip ssh authentication-retries 3
+line vty 0 4
+ privilege level 15
+
+! Set Interface Connected to the Radius Server
+ip radius source-interface GigabitEthernet1
+
+! Set Radius IP and Secret and Ports
+! Some Version
+! radius-server host 192.168.1.49 auth-port 1812 acct-port 1813
+radius-server key test123
+radius server SAS
+ address ipv4 192.168.1.49 auth-port 1812 acct-port 1813
+ timeout 1000
+
+ip dns server
+ip name-server 8.8.8.8 8.8.4.4 1.1.1.1
+ip domain lookup
+ip dns cache enable
+ip dns cache size 1000
+
+! SSH Admin for SAS
+username sas-admin privilege 15 secret sasSAS123!@#
+
+! Add Local Users Here
+username user1 password password1
+username user2 password password2
+username user3 password password3
+
+ip local pool PPPoE_POOL 10.20.0.2 10.20.15.254
+
+interface GigabitEthernet1
+ ip address dhcp
+ ip nat outside
+ no shutdown
+
+interface GigabitEthernet2
+ no ip address
+ pppoe enable group global
+ no shutdown
+
+interface Virtual-Template1
+ ip address 10.20.0.1 255.255.240.0
+ ppp ipcp dns 10.20.0.1
+ peer default ip address pool PPPoE_POOL
+ ppp authentication pap chap
+ ip nat inside
+
+bba-group pppoe global
+ virtual-template 1
+
+access-list 1 permit 10.20.0.0 0.0.15.255
+
+ip nat inside source list 1 interface GigabitEthernet1 overload
+
