@@ -1,0 +1,106 @@
+! Change Router Name
+conf t
+hostname R1
+
+! Enable routing
+ip routing
+ip domain name myisp.com
+no logging console
+
+! =========================
+! To Enable SSH MGMT 
+! =========================
+aaa new-model
+aaa authentication ppp default group radius local
+aaa authorization network default group radius local
+aaa accounting network default start-stop group radius
+crypto key generate rsa modulus 2048
+ip ssh version 2
+ip ssh time-out 60
+ip ssh authentication-retries 3
+line vty 0 4
+ privilege level 15
+
+! =========================
+! SSH Admin User
+! =========================
+username ssh-admin privilege 15 secret sshSSH123!@#
+
+! =========================
+! WAN Interface 
+! =========================
+interface GigabitEthernet1
+ description WAN
+ ip address dhcp
+ ip nat outside
+ no shutdown
+
+! =========================
+! LAN1 - DHCP Server
+! =========================
+interface GigabitEthernet2
+ description LAN1
+ ip address 192.168.20.1 255.255.255.0
+ ip nat inside
+ no shutdown
+
+! =========================
+! Subinterface VLAN 100
+! =========================
+interface GigabitEthernet2.100
+ encapsulation dot1Q 100
+ ip address 192.168.100.1 255.255.255.0
+ ip nat inside
+ no shutdown
+
+! =========================
+! LAN2 - DHCP Server
+! =========================
+interface GigabitEthernet3
+ description LAN2
+ ip address 192.168.30.1 255.255.255.0
+ ip nat inside
+ no shutdown
+
+! =========================
+! DHCP Server for LAN1
+! =========================
+ip dhcp excluded-address 192.168.20.1 192.168.20.10
+ip dhcp excluded-address 192.168.30.1 192.168.30.10
+ip dhcp excluded-address 192.168.100.1 192.168.30.10
+
+
+! =========================
+! DHCP Server Pool
+! =========================
+ip dhcp pool LAN20
+ network 192.168.20.0 255.255.255.0
+ default-router 192.168.20.1
+ dns-server 192.168.20.1
+
+ip dhcp pool LAN30
+ network 192.168.30.0 255.255.255.0
+ default-router 192.168.30.1
+ dns-server 192.168.30.1
+
+ip dhcp pool VLAN100
+ network 192.168.100.0 255.255.255.0
+ default-router 192.168.100.1
+ dns-server 192.168.100.1
+
+! =========================
+! NAT
+! =========================
+access-list 1 permit 192.168.20.0 0.0.0.255
+access-list 1 permit 192.168.30.0 0.0.0.255
+access-list 1 permit 192.168.100.0 0.0.0.255
+
+ip nat inside source list 1 interface GigabitEthernet1 overload
+
+
+! =========================
+! DNS Server (Local Forwarder)
+! =========================
+ip dns server
+ip name-server 8.8.8.8 1.1.1.1
+
