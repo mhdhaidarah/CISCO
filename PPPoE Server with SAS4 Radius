@@ -25,7 +25,7 @@ ip radius source-interface GigabitEthernet1
 radius-server key test123
 radius server SAS
  address ipv4 192.168.1.49 auth-port 1812 acct-port 1813
- timeout 1000
+ timeout 3
 
 ip dns server
 ip name-server 8.8.8.8 8.8.4.4 1.1.1.1
